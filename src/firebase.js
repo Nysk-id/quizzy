@@ -6,14 +6,15 @@ import { getStorage } from 'firebase/storage'
 // TODO: Ganti dengan konfigurasi Firebase project kamu
 // Cara: Firebase Console → Project Settings → Your apps → Web app → SDK setup
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
-}
+  apiKey: "AIzaSyBwLvIUilP03LGJcA1pAFKDFRMvBYgP2Us",
+  authDomain: "quizzy-izz.firebaseapp.com",
+  projectId: "quizzy-izz",
+  storageBucket: "quizzy-izz.firebasestorage.app",
+  messagingSenderId: "303070546788",
+  appId: "1:303070546788:web:444e965f85ff734ca34871",
+  measurementId: "G-VGGTCFZ2H9"
+};
+
 
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
