@@ -1,0 +1,59 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'superadmin'",
+        ".write": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'superadmin'"
+      }
+    },
+    "nim_index": {
+      ".read": "auth !== null",
+      "$nim": {
+        ".write": "auth !== null"
+      }
+    },
+    "events": {
+      ".read": "auth !== null",
+      "$eventId": {
+        ".write": "auth !== null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'superadmin')"
+      }
+    },
+    "rooms": {
+      ".read": "auth !== null",
+      "$roomId": {
+        ".write": "auth !== null",
+        "participants": {
+          "$uid": {
+            ".write": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'superadmin'"
+          }
+        }
+      }
+    },
+    "questions": {
+      ".read": "auth !== null",
+      "$qId": {
+        ".write": "auth !== null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'superadmin')"
+      }
+    },
+    "results": {
+      "$roomId": {
+        ".read": "auth !== null",
+        "$uid": {
+          ".write": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'superadmin'"
+        }
+      }
+    },
+    "result_hashes": {
+      ".read": true,
+      ".write": "auth !== null"
+    },
+    "room_codes": {
+      ".read": "auth !== null",
+      ".write": "auth !== null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'superadmin')"
+    },
+    "settings": {
+      ".read": "auth !== null",
+      ".write": "root.child('users').child(auth.uid).child('role').val() === 'superadmin'"
+    }
+  }
+}
