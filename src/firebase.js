@@ -4,7 +4,6 @@ import { getDatabase } from 'firebase/database'
 import { getStorage } from 'firebase/storage'
 
 // TODO: Ganti dengan konfigurasi Firebase project kamu
-// Cara: Firebase Console → Project Settings → Your apps → Web app → SDK setup
 const firebaseConfig = {
   apiKey: "AIzaSyBwLvIUilP03LGJcA1pAFKDFRMvBYgP2Us",
   authDomain: "quizzy-izz.firebaseapp.com",
