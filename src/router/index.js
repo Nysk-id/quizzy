@@ -13,6 +13,7 @@ const ProfilePage = () => import('@/views/peserta/ProfilePage.vue')
 const LeaderboardPage = () => import('@/views/public/LeaderboardPage.vue')
 const VerifyPage = () => import('@/views/public/VerifyPage.vue')
 const AdminLogin = () => import('@/views/admin/AdminLogin.vue')
+const AdminRegister = () => import('@/views/admin/AdminRegister.vue')
 const AdminDashboard = () => import('@/views/admin/AdminDashboard.vue')
 const AdminEvents = () => import('@/views/admin/AdminEvents.vue')
 const AdminEventNew = () => import('@/views/admin/AdminEventNew.vue')
@@ -33,10 +34,15 @@ const routes = [
   { path: '/dashboard', name: 'dashboard', component: DashboardPage, meta: { requiresAuth: true } },
   { path: '/join/:code?', name: 'join', component: JoinPage, meta: { requiresAuth: true } },
   { path: '/waiting/:roomId', name: 'waiting', component: WaitingPage, meta: { requiresAuth: true } },
-  { path: '/quiz/:roomId', name: 'quiz', component: QuizPage, meta: { requiresAuth: true, fullscreen: true } },
+  { path: '/quiz/:roomId', name: 'quiz', component: QuizPage, meta: { requiresAuth: true } },
   { path: '/result/:roomId', name: 'result', component: ResultPage, meta: { requiresAuth: true } },
   { path: '/profile', name: 'profile', component: ProfilePage, meta: { requiresAuth: true } },
-  { path: '/admin/login', name: 'admin-login', component: AdminLogin, meta: { guestOnly: true, adminArea: true } },
+
+  // Admin auth — register pakai token invite (public)
+  { path: '/admin/login', name: 'admin-login', component: AdminLogin },
+  { path: '/admin/register', name: 'admin-register', component: AdminRegister },
+
+  // Admin panel
   { path: '/admin', redirect: '/admin/dashboard' },
   { path: '/admin/dashboard', name: 'admin-dashboard', component: AdminDashboard, meta: { requiresAdmin: true } },
   { path: '/admin/events', name: 'admin-events', component: AdminEvents, meta: { requiresAdmin: true } },
@@ -66,13 +72,11 @@ router.beforeEach(async (to, from, next) => {
   const isLoggedIn = !!authStore.user
   const isAdmin = authStore.isAdmin
   const isSuperAdmin = authStore.isSuperAdmin
+
   if (to.meta.requiresAuth && !isLoggedIn) return next({ name: 'login', query: { redirect: to.fullPath } })
   if (to.meta.requiresAdmin && !isAdmin) return next({ name: 'admin-login' })
   if (to.meta.superadminOnly && !isSuperAdmin) return next({ name: 'admin-dashboard' })
-  if (to.meta.guestOnly && isLoggedIn) {
-    if (to.meta.adminArea) return next({ name: 'admin-dashboard' })
-    return next({ name: 'dashboard' })
-  }
+  if (to.meta.guestOnly && isLoggedIn) return next({ name: 'dashboard' })
   next()
 })
 

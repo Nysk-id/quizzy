@@ -1,59 +1,50 @@
 {
   "rules": {
     "users": {
-      "$uid": {
-        ".read": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'superadmin'",
-        ".write": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'superadmin'"
-      }
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["role", "nim"]
     },
     "nim_index": {
-      ".read": "auth !== null",
-      "$nim": {
-        ".write": "auth !== null"
-      }
+      ".read": true,
+      ".write": "auth != null"
     },
     "events": {
-      ".read": "auth !== null",
-      "$eventId": {
-        ".write": "auth !== null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'superadmin')"
-      }
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["createdBy", "status"]
     },
     "rooms": {
-      ".read": "auth !== null",
-      "$roomId": {
-        ".write": "auth !== null",
-        "participants": {
-          "$uid": {
-            ".write": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'superadmin'"
-          }
-        }
-      }
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["eventId", "status", "code"]
     },
     "questions": {
-      ".read": "auth !== null",
-      "$qId": {
-        ".write": "auth !== null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'superadmin')"
-      }
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["createdBy", "eventId"]
     },
     "results": {
-      "$roomId": {
-        ".read": "auth !== null",
-        "$uid": {
-          ".write": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'superadmin'"
-        }
-      }
+      ".read": "auth != null",
+      ".write": "auth != null"
     },
     "result_hashes": {
       ".read": true,
-      ".write": "auth !== null"
+      ".write": "auth != null"
     },
     "room_codes": {
-      ".read": "auth !== null",
-      ".write": "auth !== null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'superadmin')"
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["code"]
     },
     "settings": {
-      ".read": "auth !== null",
-      ".write": "root.child('users').child(auth.uid).child('role').val() === 'superadmin'"
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "admin_invites": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["token", "email"]
     }
   }
 }
