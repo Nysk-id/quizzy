@@ -1,81 +1,97 @@
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useQuizStore } from '@/stores/quiz'
 
-export function useAntiCheat(enabled = true) {
-  const quizStore = useQuizStore()
+export function useAntiCheat(onViolation, options = {}) {
+  const { maxViolations = 5, enabled = true } = options
+
   const violationCount = ref(0)
   const isWarning = ref(false)
   const warningMessage = ref('')
   const isLocked = ref(false)
-  const MAX_VIOLATIONS = 5
+  const isFullscreen = ref(false)
 
-  function warn(message, type) {
+  function triggerWarning(message, type) {
+    if (!enabled) return
     violationCount.value++
-    isWarning.value = true
     warningMessage.value = message
-    quizStore.recordViolation(type)
-    if (violationCount.value >= MAX_VIOLATIONS) isLocked.value = true
-    setTimeout(() => { isWarning.value = false }, 3000)
+    isWarning.value = true
+    onViolation?.(type, violationCount.value)
+    if (violationCount.value >= maxViolations) isLocked.value = true
+    setTimeout(() => { isWarning.value = false }, 4000)
   }
 
-  // Tab/visibility detection
-  function handleVisibilityChange() {
-    if (!enabled) return
-    if (document.hidden) warn('Berpindah tab/window terdeteksi!', 'tab_switch')
+  // Visibility (tab switch)
+  function handleVisibility() {
+    if (document.hidden) triggerWarning('Berpindah tab/window terdeteksi!', 'tab_switch')
   }
 
-  // Fullscreen detection
+  // Fullscreen change
   function handleFullscreenChange() {
-    if (!enabled) return
-    if (!document.fullscreenElement) warn('Keluar dari fullscreen terdeteksi!', 'exit_fullscreen')
+    isFullscreen.value = !!document.fullscreenElement
+    if (!document.fullscreenElement && enabled) {
+      triggerWarning('Keluar dari fullscreen terdeteksi!', 'exit_fullscreen')
+    }
   }
 
-  // Disable right click
+  // Block right click
   function handleContextMenu(e) {
-    if (!enabled) return
-    e.preventDefault()
+    if (enabled) e.preventDefault()
   }
 
-  // Disable copy/paste shortcuts
+  // Block keyboard shortcuts
   function handleKeydown(e) {
     if (!enabled) return
-    const blocked = ['F12', 'F11']
-    const ctrlBlocked = ['c', 'v', 'u', 's', 'a']
-    if (blocked.includes(e.key)) { e.preventDefault(); return }
-    if ((e.ctrlKey || e.metaKey) && ctrlBlocked.includes(e.key.toLowerCase())) {
+    // Block F12
+    if (e.key === 'F12') { e.preventDefault(); return }
+    // Block Ctrl+Shift+I/J/C (devtools)
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i','j','c','k'].includes(e.key.toLowerCase())) {
       e.preventDefault()
+      triggerWarning('Akses developer tools diblokir!', 'devtools')
+      return
     }
-    // Detect devtools shortcut
-    if (e.ctrlKey && e.shiftKey && ['i', 'j', 'c'].includes(e.key.toLowerCase())) {
+    // Block Ctrl+U (view source)
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'u') {
       e.preventDefault()
-      warn('Akses developer tools diblokir!', 'devtools')
+      return
     }
   }
 
   async function requestFullscreen() {
     try {
-      await document.documentElement.requestFullscreen()
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen()
+      }
     } catch (e) {
-      console.warn('Fullscreen tidak tersedia:', e)
+      // Fullscreen tidak didukung di beberapa browser mobile — tidak apa-apa
+      console.warn('Fullscreen request failed:', e.message)
+    }
+  }
+
+  function exitFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {})
     }
   }
 
   onMounted(() => {
     if (!enabled) return
-    document.addEventListener('visibilitychange', handleVisibilityChange)
+    document.addEventListener('visibilitychange', handleVisibility)
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     document.addEventListener('contextmenu', handleContextMenu)
     document.addEventListener('keydown', handleKeydown)
-    requestFullscreen()
+    // Request fullscreen dengan delay biar browser tidak block
+    setTimeout(() => requestFullscreen(), 500)
   })
 
   onUnmounted(() => {
-    document.removeEventListener('visibilitychange', handleVisibilityChange)
+    document.removeEventListener('visibilitychange', handleVisibility)
     document.removeEventListener('fullscreenchange', handleFullscreenChange)
     document.removeEventListener('contextmenu', handleContextMenu)
     document.removeEventListener('keydown', handleKeydown)
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
+    exitFullscreen()
   })
 
-  return { violationCount, isWarning, warningMessage, isLocked, requestFullscreen }
+  return {
+    violationCount, isWarning, warningMessage, isLocked, isFullscreen,
+    requestFullscreen, triggerWarning
+  }
 }
